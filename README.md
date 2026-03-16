@@ -24,20 +24,19 @@ Clone the repository:
 
 Bash
 git clone https://github.com/DevTamem/PomodoroTimer.git
-
 Install dependencies:
+
 Bash
 cd PomodoroTimer
 npm install
 # or
 yarn install
-
 Run the application:
+
 Bash
 npm start
 # or
 yarn start
-
 Open http://localhost:3000 to view it in your browser.
 
 📖 How to Use
