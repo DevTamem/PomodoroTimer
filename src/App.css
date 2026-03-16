@@ -281,6 +281,11 @@ body {
   transform-origin: center;
 }
 
+.glasses-fall {
+  animation: glassfall 0.55s ease-out 0.15s forwards;
+  transform-origin: 57px 90px;
+}
+
 .z1 { animation: zzz 2.4s ease-out infinite; }
 .z2 { animation: zzz 2.4s ease-out 0.75s infinite; }
 .z3 { animation: zzz 2.4s ease-out 1.5s infinite; }
