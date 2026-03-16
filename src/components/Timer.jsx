@@ -75,14 +75,16 @@ function Mascot({ state }) {
         <circle cx="58" cy="45" r="4.5" fill="#d8d8d8"/>
         <circle cx="58" cy="45" r="2.5" fill="#c4c4c4"/>
 
-        {/* Glasses — animate falling when sleeping */}
-        <g className={state === "sleeping" ? "glasses-fall" : ""}>
-          <rect x="35" y="90" width="18" height="13" rx="6" fill="rgba(180,220,255,0.18)" stroke="#4a3a2a" strokeWidth="2.2"/>
-          <rect x="63" y="90" width="18" height="13" rx="6" fill="rgba(180,220,255,0.18)" stroke="#4a3a2a" strokeWidth="2.2"/>
-          <path d="M53 96 Q58 94 63 96" fill="none" stroke="#4a3a2a" strokeWidth="2"/>
-          <line x1="26" y1="96" x2="35" y2="96" stroke="#4a3a2a" strokeWidth="1.8"/>
-          <line x1="81" y1="96" x2="90" y2="96" stroke="#4a3a2a" strokeWidth="1.8"/>
-        </g>
+        {/* Glasses — hide when sleeping */}
+        {state !== "sleeping" && (
+          <g className={state === "sleeping" ? "glasses-fall" : ""}>
+            <rect x="35" y="90" width="18" height="13" rx="6" fill="rgba(180,220,255,0.18)" stroke="#4a3a2a" strokeWidth="2.2"/>
+            <rect x="63" y="90" width="18" height="13" rx="6" fill="rgba(180,220,255,0.18)" stroke="#4a3a2a" strokeWidth="2.2"/>
+            <path d="M53 96 Q58 94 63 96" fill="none" stroke="#4a3a2a" strokeWidth="2"/>
+            <line x1="26" y1="96" x2="35" y2="96" stroke="#4a3a2a" strokeWidth="1.8"/>
+            <line x1="81" y1="96" x2="90" y2="96" stroke="#4a3a2a" strokeWidth="1.8"/>
+          </g>
+        )}
 
         {/* Nose */}
         <ellipse cx="58" cy="107" rx="3" ry="2" fill="#F4B090"/>
