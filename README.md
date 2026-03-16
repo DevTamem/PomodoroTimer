@@ -1,16 +1,52 @@
-# React + Vite
+PomodoroTimer
+A minimalist, React-based web application designed to help users master the 50/10 Productivity Technique. By focusing for 50 minutes and resting for 10, this tool helps you maintain deep work states while ensuring consistent recovery.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🚀 Features
+Deep Work Focus: Optimized for 50-minute "Focus Sessions" and 10-minute "Recovery Breaks."
 
-Currently, two official plugins are available:
+Intuitive Controls: Simple interface with a dedicated "Start Session" flow.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Modern Iconography: Clean, consistent UI powered by Lucide-react.
 
-## React Compiler
+Responsive UI: Styled with modern CSS for a seamless experience on any device.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+🛠️ Tech Stack
+Framework: React
 
-## Expanding the ESLint configuration
+Icons: Lucide-react
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Styling: CSS3 & HTML5
+
+State Management: React Hooks (useState, useEffect)
+
+📥 Getting Started
+Clone the repository:
+
+Bash
+git clone https://github.com/DevTamem/PomodoroTimer.git
+
+Install dependencies:
+Bash
+cd PomodoroTimer
+npm install
+# or
+yarn install
+
+Run the application:
+Bash
+npm start
+# or
+yarn start
+
+Open http://localhost:3000 to view it in your browser.
+
+📖 How to Use
+Prepare your Task: Choose one specific objective to tackle.
+
+Initiate: Click the "Start Session" button to begin your 50-minute countdown.
+
+Work: Stay focused until the timer ends.
+
+Rest: The app will automatically transition to a 10-minute break.
+
+Repeat: Cycle through these intervals to maximize your daily output.
