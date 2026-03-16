@@ -1,6 +1,6 @@
 # PomodoroTimer
 
-A minimalist, React-based web application designed to help users master the **50/10 Productivity Technique**. By focusing for 50 minutes and resting for 10, this tool helps you maintain deep work states while ensuring consistent recovery.
+A minimalist, React-based web application built with **Vite** to help users master the **50/10 Productivity Technique**. Focus for 50 minutes, rest for 10, and maintain your peak flow state.
 
 ---
 
@@ -9,14 +9,14 @@ A minimalist, React-based web application designed to help users master the **50
 * **Deep Work Focus:** Optimized for 50-minute "Focus Sessions" and 10-minute "Recovery Breaks."
 * **Intuitive Controls:** Simple interface with a dedicated **"Start Session"** flow.
 * **Modern Iconography:** Clean, consistent UI powered by **Lucide-react**.
-* **Responsive UI:** Styled with modern CSS for a seamless experience on any device.
+* **Lightning Fast:** Built on **Vite** for near-instant hot module replacement (HMR).
 
 ## 🛠️ Tech Stack
 
 * **Framework:** [React](https://reactjs.org/)
+* **Build Tool:** [Vite](https://vitejs.dev/)
 * **Icons:** [Lucide-react](https://lucide.dev/)
 * **Styling:** CSS3 & HTML5
-* **State Management:** React Hooks (`useState`, `useEffect`)
 
 ## 📥 Getting Started
 
@@ -31,8 +31,9 @@ A minimalist, React-based web application designed to help users master the **50
     ```
 3.  **Run the application:**
     ```bash
-    npm start
+    npm run dev
     ```
+4.  Open the local URL provided in your terminal (usually `http://localhost:5173`) to view it in your browser.
 
 ## 📖 How to Use
 
