@@ -22,7 +22,7 @@ A minimalist, React-based web application built with **Vite** to help users mast
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/PomodoroTimer.git](https://github.com/your-username/PomodoroTimer.git)
+    git clone https://github.com/DevTamem/PomodoroTimer.git
     ```
 2.  **Install dependencies:**
     ```bash
