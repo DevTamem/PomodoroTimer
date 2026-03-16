@@ -1,16 +1,44 @@
-# React + Vite
+# PomodoroTimer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimalist, React-based web application built with **Vite** to help users master the **50/10 Productivity Technique**. Focus for 50 minutes, rest for 10, and maintain your peak flow state.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Features
 
-## React Compiler
+* **Deep Work Focus:** Optimized for 50-minute "Focus Sessions" and 10-minute "Recovery Breaks."
+* **Intuitive Controls:** Simple interface with a dedicated **"Start Session"** flow.
+* **Modern Iconography:** Clean, consistent UI powered by **Lucide-react**.
+* **Lightning Fast:** Built on **Vite** for near-instant hot module replacement (HMR).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+* **Framework:** [React](https://reactjs.org/)
+* **Build Tool:** [Vite](https://vitejs.dev/)
+* **Icons:** [Lucide-react](https://lucide.dev/)
+* **Styling:** CSS3 & HTML5
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 📥 Getting Started
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/DevTamem/PomodoroTimer.git
+    ```
+2.  **Install dependencies:**
+    ```bash
+    cd PomodoroTimer
+    npm install
+    ```
+3.  **Run the application:**
+    ```bash
+    npm run dev
+    ```
+4.  Open the local URL provided in your terminal (usually `http://localhost:5173`) to view it in your browser.
+
+## 📖 How to Use
+
+1.  **Prepare your Task:** Choose one specific objective to tackle.
+2.  **Initiate:** Click the **"Start Session"** button to begin your 50-minute countdown.
+3.  **Work:** Stay focused until the timer ends.
+4.  **Rest:** The app will automatically transition to a 10-minute break.
+5.  **Repeat:** Cycle through these intervals to maximize your daily output.
