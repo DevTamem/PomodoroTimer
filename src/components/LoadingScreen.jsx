@@ -5,7 +5,7 @@ export default function LoadingScreen({ onLoadingComplete }) {
   const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    const duration = 10000; // 10 seconds
+    const duration = 5000; // 5 seconds
     const interval = 50;
     const step = 100 / (duration / interval);
 
@@ -19,15 +19,15 @@ export default function LoadingScreen({ onLoadingComplete }) {
       });
     }, interval);
 
-    // Start fade out at 9.5 seconds
+    // Start fade out at 4.5 seconds
     const fadeTimer = setTimeout(() => {
       setFading(true);
-    }, 9500);
+    }, 4500);
 
-    // Complete loading at 10 seconds
+    // Complete loading at 5 seconds
     const completeTimer = setTimeout(() => {
       onLoadingComplete();
-    }, 10000);
+    }, 5000);
 
     return () => {
       clearInterval(timer);
