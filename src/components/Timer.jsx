@@ -1,13 +1,77 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, RotateCcw, Pencil, Coffee, Flame } from "lucide-react";
+import {
+  BellOff,
+  BellRing,
+  Coffee,
+  Flame,
+  MonitorUp,
+  Pause,
+  Pencil,
+  Play,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import DesktopTitleBar from "./DesktopTitleBar";
+import { getDesktopApi, isDesktopApp } from "../lib/desktop";
 import "../App.css";
 
-const STUDY = 50 * 60;
-const BREAK = 10 * 60;
+const DEFAULT_FOCUS_MINUTES = 50;
+const DEFAULT_BREAK_MINUTES = 10;
 const CIRC = 2 * Math.PI * 88;
+const SETTINGS_KEY = "pomodoroSettings";
+const STATS_KEY = "pomodoroStats";
+const DEFAULT_WINDOW_STATE = {
+  isAlwaysOnTop: false,
+  isFocused: true,
+  isMaximized: false,
+};
 
 function pad(n) { return String(n).padStart(2, "0"); }
 function fmt(s) { return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`; }
+function minutesToSeconds(minutes) {
+  return Math.max(1, Math.round(minutes * 60));
+}
+function normalizeDuration(value, fallback) {
+  const next = Number(value);
+  if (!Number.isFinite(next)) {
+    return fallback;
+  }
+
+  return Math.min(999, Math.max(0.05, Math.round(next * 100) / 100));
+}
+function fmtMinutes(value) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0$/, "");
+}
+function readStorage(key, fallback) {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? { ...fallback, ...JSON.parse(stored) } : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function notifyInBrowser(title, body) {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return false;
+  }
+
+  if (Notification.permission === "granted") {
+    new Notification(title, { body });
+    return true;
+  }
+
+  if (Notification.permission === "default") {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      new Notification(title, { body });
+      return true;
+    }
+  }
+
+  return false;
+}
 
 function playChime(type) {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -273,30 +337,116 @@ function Mascot({ state, gender }) {
 }
 
 export default function Timer() {
-  const [phase, setPhase] = useState("study");
-  const [remaining, setRemaining] = useState(STUDY);
-  const [total, setTotal] = useState(STUDY);
-  const [running, setRunning] = useState(false);
-  const [sessions, setSessions] = useState(0);
-  const [focusMin, setFocusMin] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [toast, setToast] = useState(null);
-  const [gender, setGender] = useState(() => {
-    return localStorage.getItem("mascotGender") || "boy";
+  const desktopApi = getDesktopApi();
+  const isDesktop = isDesktopApp();
+  const initialSettings = readStorage(SETTINGS_KEY, {
+    mascotGender: "boy",
+    notificationsEnabled: true,
+    soundEnabled: true,
+    focusMinutes: DEFAULT_FOCUS_MINUTES,
+    breakMinutes: DEFAULT_BREAK_MINUTES,
   });
+  const [phase, setPhase] = useState("study");
+  const [remaining, setRemaining] = useState(() => minutesToSeconds(initialSettings.focusMinutes));
+  const [total, setTotal] = useState(() => minutesToSeconds(initialSettings.focusMinutes));
+  const [running, setRunning] = useState(false);
+  const [toast, setToast] = useState("");
+  const [settings, setSettings] = useState(() => initialSettings);
+  const [draftDurations, setDraftDurations] = useState(() => ({
+    focusMinutes: fmtMinutes(initialSettings.focusMinutes),
+    breakMinutes: fmtMinutes(initialSettings.breakMinutes),
+  }));
+  const [stats, setStats] = useState(() =>
+    readStorage(STATS_KEY, {
+      focusMinutes: 0,
+      sessions: 0,
+      streak: 0,
+    })
+  );
+  const [windowState, setWindowState] = useState(DEFAULT_WINDOW_STATE);
+  const [appVersion, setAppVersion] = useState("");
   const intervalRef = useRef(null);
-  const endTimeRef = useRef(null); // Store the target end timestamp
+  const endTimeRef = useRef(null);
+  const toastTimeoutRef = useRef(null);
+  const focusDurationSeconds = minutesToSeconds(settings.focusMinutes);
+  const breakDurationSeconds = minutesToSeconds(settings.breakMinutes);
 
   const toggleGender = () => {
-    const newGender = gender === "boy" ? "girl" : "boy";
-    setGender(newGender);
-    localStorage.setItem("mascotGender", newGender);
+    setSettings((current) => ({
+      ...current,
+      mascotGender: current.mascotGender === "boy" ? "girl" : "boy",
+    }));
   };
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
+  const showToast = useCallback((message) => {
+    clearTimeout(toastTimeoutRef.current);
+    setToast(message);
+    toastTimeoutRef.current = setTimeout(() => setToast(""), 3200);
+  }, []);
+
+  const sendNotification = useCallback(async (title, body) => {
+    if (!settings.notificationsEnabled) {
+      return;
+    }
+
+    if (desktopApi) {
+      await desktopApi.notify({ title, body, silent: false });
+      return;
+    }
+
+    await notifyInBrowser(title, body);
+  }, [desktopApi, settings.notificationsEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  }, [stats]);
+
+  useEffect(() => {
+    if (!desktopApi) {
+      return undefined;
+    }
+
+    desktopApi.getVersion().then((version) => {
+      setAppVersion(version);
+    });
+
+    desktopApi.getWindowState().then((state) => {
+      if (state) {
+        setWindowState(state);
+      }
+    });
+
+    const unsubscribe = desktopApi.onWindowState((state) => {
+      setWindowState(state);
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [desktopApi]);
+
+  useEffect(() => {
+    if (
+      !isDesktop &&
+      settings.notificationsEnabled &&
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      Notification.permission === "default"
+    ) {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, [isDesktop, settings.notificationsEnabled]);
+
+  useEffect(() => {
+    return () => {
+      clearInterval(intervalRef.current);
+      clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
 
   const handleTimerEnd = useCallback(() => {
     clearInterval(intervalRef.current);
@@ -304,22 +454,39 @@ export default function Timer() {
     endTimeRef.current = null;
 
     if (phase === "study") {
-      setSessions((s) => s + 1);
-      setFocusMin((m) => m + 50);
-      setStreak((s) => s + 1);
-      playChime("break");
-      showToast("🎉 Great work! Time for a break!");
+      setStats((current) => ({
+        focusMinutes: current.focusMinutes + settings.focusMinutes,
+        sessions: current.sessions + 1,
+        streak: current.streak + 1,
+      }));
+      if (settings.soundEnabled) {
+        playChime("break");
+      }
+      sendNotification("Break time", `Nice work. Step away and recharge for ${fmtMinutes(settings.breakMinutes)} minutes.`);
+      showToast("Focus block complete. Take ten to reset.");
       setPhase("break");
-      setTotal(BREAK);
-      setRemaining(BREAK);
+      setTotal(breakDurationSeconds);
+      setRemaining(breakDurationSeconds);
     } else {
-      playChime("study");
-      showToast("☕ Break over! Ready to focus?");
+      if (settings.soundEnabled) {
+        playChime("study");
+      }
+      sendNotification("Focus time", `Break over. Jump back into your next ${fmtMinutes(settings.focusMinutes)} minute block.`);
+      showToast("Break complete. Your next focus session is ready.");
       setPhase("study");
-      setTotal(STUDY);
-      setRemaining(STUDY);
+      setTotal(focusDurationSeconds);
+      setRemaining(focusDurationSeconds);
     }
-  }, [phase]);
+  }, [
+    breakDurationSeconds,
+    focusDurationSeconds,
+    phase,
+    sendNotification,
+    settings.breakMinutes,
+    settings.focusMinutes,
+    settings.soundEnabled,
+    showToast,
+  ]);
 
   const tick = useCallback(() => {
     if (!endTimeRef.current) return;
@@ -373,35 +540,114 @@ export default function Timer() {
     setRunning(false);
     endTimeRef.current = null;
     setPhase("study");
-    setRemaining(STUDY);
-    setTotal(STUDY);
+    setRemaining(focusDurationSeconds);
+    setTotal(focusDurationSeconds);
+    showToast("Timer reset. Ready when you are.");
+  };
+
+  const applyDurations = () => {
+    const nextFocusMinutes = normalizeDuration(
+      draftDurations.focusMinutes,
+      settings.focusMinutes
+    );
+    const nextBreakMinutes = normalizeDuration(
+      draftDurations.breakMinutes,
+      settings.breakMinutes
+    );
+
+    clearInterval(intervalRef.current);
+    endTimeRef.current = null;
+    setRunning(false);
+    setSettings((current) => ({
+      ...current,
+      focusMinutes: nextFocusMinutes,
+      breakMinutes: nextBreakMinutes,
+    }));
+    setDraftDurations({
+      focusMinutes: fmtMinutes(nextFocusMinutes),
+      breakMinutes: fmtMinutes(nextBreakMinutes),
+    });
+    setPhase("study");
+    setRemaining(minutesToSeconds(nextFocusMinutes));
+    setTotal(minutesToSeconds(nextFocusMinutes));
+    showToast(`Durations updated: ${fmtMinutes(nextFocusMinutes)}m / ${fmtMinutes(nextBreakMinutes)}m`);
+  };
+
+  const toggleSetting = (key) => {
+    setSettings((current) => ({
+      ...current,
+      [key]: !current[key],
+    }));
+  };
+
+  const handleAlwaysOnTop = async () => {
+    if (!desktopApi) {
+      return;
+    }
+
+    const nextState = await desktopApi.toggleAlwaysOnTop();
+    if (nextState) {
+      setWindowState(nextState);
+    }
   };
 
   const progress = remaining / total;
   const offset = CIRC * (1 - progress);
   const isStudy = phase === "study";
+  const cycleIndex = stats.sessions % 4;
+  const sessionsUntilCycleEnd = stats.sessions === 0 ? 4 : 4 - cycleIndex || 4;
 
   return (
-    <div className={`app${running ? " pulsing" : ""}`}>
+    <div className={`app-shell ${phase}${running ? " pulsing" : ""}`}>
+      <DesktopTitleBar
+        appVersion={appVersion}
+        isAlwaysOnTop={windowState.isAlwaysOnTop}
+        isDesktop={isDesktop}
+        onClose={() => desktopApi?.closeWindow()}
+        onMinimize={() => desktopApi?.minimizeWindow()}
+        onToggleAlwaysOnTop={handleAlwaysOnTop}
+        phase={phase}
+      />
+
+      <div className="app">
       <div className="deco-blob blob1" />
       <div className="deco-blob blob2" />
       <div className="deco-blob blob3" />
 
       {toast && <div className="toast show">{toast}</div>}
 
+      <div className="hero-copy">
+        <div className="eyebrow">50 / 10 rhythm</div>
+        <h1>{running ? (isStudy ? "Protect your best attention." : "Recover without guilt.") : "A calmer desk for focused work."}</h1>
+        <p>
+          The original web timer now lives inside a desktop shell with native
+          controls, notifications, and a cleaner workspace.
+        </p>
+      </div>
+
       <div className="mascot-container">
-        <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={gender} />
-        <button className="gender-toggle" onClick={toggleGender} title={`Switch to ${gender === "boy" ? "girl" : "boy"}`}>
-          {gender === "boy" ? "👦" : "👧"}
+        <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} />
+        <button className="gender-toggle" onClick={toggleGender} title={`Switch to ${settings.mascotGender === "boy" ? "girl" : "boy"}`} type="button">
+          {settings.mascotGender === "boy" ? "Switch to girl" : "Switch to boy"}
         </button>
       </div>
 
       <div className={`phase-badge ${phase}`}>
         {isStudy ? <Pencil size={14} /> : <Coffee size={14} />}
-        <span>{isStudy ? "Study time" : "Break time"}</span>
+        <span>{isStudy ? "Focus mode" : "Break mode"}</span>
       </div>
 
       <div className="timer-card">
+        <div className="timer-card__header">
+          <div>
+            <div className="section-label">Current session</div>
+            <h2>{isStudy ? "Deep focus sprint" : "Recovery window"}</h2>
+          </div>
+          <div className={`state-pill ${running ? "running" : "paused"}`}>
+            {running ? "In progress" : "Paused"}
+          </div>
+        </div>
+
         <div className="timer-ring-wrap">
           <svg className="timer-svg" viewBox="0 0 200 200">
             <circle className="ring-track" cx="100" cy="100" r="88" />
@@ -417,49 +663,120 @@ export default function Timer() {
           </svg>
           <div className="timer-center">
             <div className="timer-digits">{fmt(remaining)}</div>
-            <div className="timer-label">{isStudy ? "minutes left" : "break time"}</div>
+            <div className="timer-label">{isStudy ? "minutes left" : "break remaining"}</div>
           </div>
         </div>
 
+        <p className="timer-summary">
+          {isStudy
+            ? "One uninterrupted block, then a proper reset."
+            : "Step away, stretch, breathe, then come back clear."}
+        </p>
+
         <div className="session-info">
           <div className="stat">
-            <div className="stat-val">{sessions}</div>
+            <div className="stat-val">{stats.sessions}</div>
             <div className="stat-lbl">Sessions</div>
           </div>
           <div className="divider" />
           <div className="stat">
-            <div className="stat-val">{focusMin}m</div>
+            <div className="stat-val">{fmtMinutes(stats.focusMinutes)}m</div>
             <div className="stat-lbl">Focus time</div>
           </div>
           <div className="divider" />
           <div className="stat">
             <div className="stat-val">
-              {streak} <Flame size={14} />
+              {stats.streak} <Flame size={14} />
             </div>
             <div className="stat-lbl">Streak</div>
           </div>
         </div>
 
         <div className="btn-row">
-          <button className="btn-reset" onClick={reset} title="Reset">
+          <button className="btn-reset" onClick={reset} title="Reset" type="button">
             <RotateCcw size={16} />
+            <span>Reset</span>
           </button>
-          <button className={`btn-main ${phase}`} onClick={toggle}>
+          <button className={`btn-main ${phase}`} onClick={toggle} type="button">
             {running ? <Pause size={18} /> : <Play size={18} />}
             <span>
-              {running ? "Pause" : remaining === total ? "Start session" : "Resume"}
+              {running ? "Pause session" : remaining === total ? "Start session" : "Resume"}
             </span>
           </button>
+        </div>
+
+        <div className="duration-row">
+          <label className="duration-field">
+            <span>Focus min</span>
+            <input
+              inputMode="decimal"
+              min="0.05"
+              onChange={(event) =>
+                setDraftDurations((current) => ({
+                  ...current,
+                  focusMinutes: event.target.value,
+                }))
+              }
+              step="0.05"
+              type="number"
+              value={draftDurations.focusMinutes}
+            />
+          </label>
+          <label className="duration-field">
+            <span>Break min</span>
+            <input
+              inputMode="decimal"
+              min="0.05"
+              onChange={(event) =>
+                setDraftDurations((current) => ({
+                  ...current,
+                  breakMinutes: event.target.value,
+                }))
+              }
+              step="0.05"
+              type="number"
+              value={draftDurations.breakMinutes}
+            />
+          </label>
+          <button className="btn-apply" onClick={applyDurations} type="button">
+            Apply
+          </button>
+        </div>
+
+        <div className="toggle-grid">
+          <button className={`toggle-card${settings.soundEnabled ? " active" : ""}`} onClick={() => toggleSetting("soundEnabled")} type="button">
+            {settings.soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            <strong>Sound</strong>
+            <span>{settings.soundEnabled ? "Chimes enabled" : "Silent session"}</span>
+          </button>
+          <button className={`toggle-card${settings.notificationsEnabled ? " active" : ""}`} onClick={() => toggleSetting("notificationsEnabled")} type="button">
+            {settings.notificationsEnabled ? <BellRing size={18} /> : <BellOff size={18} />}
+            <strong>Notifications</strong>
+            <span>{settings.notificationsEnabled ? "Alerts on phase switch" : "Only in-app toasts"}</span>
+          </button>
+          {isDesktop && (
+            <button className={`toggle-card${windowState.isAlwaysOnTop ? " active" : ""}`} onClick={handleAlwaysOnTop} type="button">
+              <MonitorUp size={18} />
+              <strong>Always on top</strong>
+              <span>{windowState.isAlwaysOnTop ? "Pinned above your desktop" : "Keep it floating when needed"}</span>
+            </button>
+          )}
         </div>
 
         <div className="cycle-dots">
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className={`dot${i < sessions % 4 ? " done" : ""}${i === sessions % 4 ? " active" : ""}`}
+              className={`dot${i < cycleIndex ? " done" : ""}${i === cycleIndex ? " active" : ""}`}
             />
           ))}
         </div>
+        <div className="cycle-note">
+          {stats.sessions === 0
+            ? "Complete your first focus block to start the cycle."
+            : `${sessionsUntilCycleEnd} session${sessionsUntilCycleEnd === 1 ? "" : "s"} until you wrap this cycle.`}
+        </div>
+      </div>
       </div>
     </div>
   );
