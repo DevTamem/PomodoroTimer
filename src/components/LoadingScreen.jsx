@@ -5,7 +5,7 @@ export default function LoadingScreen({ onLoadingComplete }) {
   const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    const duration = 5000; // 5 seconds
+    const duration = 2400;
     const interval = 50;
     const step = 100 / (duration / interval);
 
@@ -19,15 +19,13 @@ export default function LoadingScreen({ onLoadingComplete }) {
       });
     }, interval);
 
-    // Start fade out at 4.5 seconds
     const fadeTimer = setTimeout(() => {
       setFading(true);
-    }, 4500);
+    }, 1800);
 
-    // Complete loading at 5 seconds
     const completeTimer = setTimeout(() => {
       onLoadingComplete();
-    }, 5000);
+    }, 2200);
 
     return () => {
       clearInterval(timer);
@@ -162,7 +160,7 @@ export default function LoadingScreen({ onLoadingComplete }) {
           <div className="bounce-dot bd3" />
         </div>
 
-        <div className="loading-subtitle">Getting ready to focus...</div>
+        <div className="loading-subtitle">Opening your focus desk...</div>
       </div>
     </div>
   );

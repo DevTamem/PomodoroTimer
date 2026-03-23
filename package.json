@@ -1,11 +1,18 @@
 {
-  "name": "timer",
+  "name": "pomodoro-timer",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "author": "tamsh",
+  "description": "Pomodoro Timer web and desktop app built with React, Vite, and Electron.",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
+    "electron:dev": "concurrently -k \"npm:dev\" \"npm:electron:dev:main\"",
+    "electron:dev:main": "wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 node scripts/electron-launch.cjs .",
     "build": "vite build",
+    "electron:start": "node scripts/electron-launch.cjs .",
+    "electron:build": "npm run build && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -19,10 +26,34 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^38.4.0",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
-    "vite": "^8.0.0"
+    "vite": "^8.0.0",
+    "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.tamsh.pomodoro",
+    "productName": "Pomodoro Timer",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "scripts/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    }
   }
 }
