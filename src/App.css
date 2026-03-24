@@ -22,6 +22,225 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.app-shell.web {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-shell.web .app {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-shell.desktop {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  border-radius: 32px;
+  overflow: hidden;
+  background: rgba(255, 251, 247, 0.84);
+  border: 1px solid rgba(114, 92, 82, 0.12);
+  box-shadow: 0 28px 80px rgba(98, 67, 52, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.app-shell.desktop ~ body {
+  padding: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 217, 191, 0.9), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(181, 228, 212, 0.9), transparent 28%),
+    linear-gradient(140deg, #f7efe6 0%, #f3ebe1 48%, #efe4d9 100%);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WEB VERSION - Minimal Single Card Design
+   ══════════════════════════════════════════════════════════════ */
+
+.timer-card.web-card {
+  max-width: 340px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 1.75rem;
+  background: white;
+  border-radius: 24px;
+  box-shadow:
+    0 2px 8px rgba(60, 40, 30, 0.06),
+    0 8px 24px rgba(60, 40, 30, 0.08);
+}
+
+.web-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.web-card-header .mascot-wrap {
+  margin: 0;
+}
+
+.web-card-header .mascot-wrap svg {
+  width: 75px;
+  height: auto;
+}
+
+.phase-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.phase-badge-inline.study {
+  background: rgba(244, 160, 122, 0.15);
+  color: #9B4A2A;
+}
+
+.phase-badge-inline.break {
+  background: rgba(93, 202, 165, 0.15);
+  color: #1D7A5A;
+}
+
+/* Web card - compact timer ring */
+.web-card .timer-ring-wrap {
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 1rem;
+}
+
+.web-card .timer-svg {
+  width: 180px;
+  height: 180px;
+}
+
+.web-card .timer-digits {
+  font-size: 40px;
+  letter-spacing: -2px;
+}
+
+.web-card .timer-label {
+  font-size: 9px;
+  color: var(--text-mid);
+}
+
+/* Web card - ultra compact session info */
+.web-card .session-info.web-compact {
+  gap: 18px;
+  padding: 0.65rem 0.5rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 250, 246, 0.4);
+  border-radius: 14px;
+}
+
+.web-card .stat-val {
+  font-size: 16px;
+}
+
+.web-card .stat-lbl {
+  font-size: 9px;
+}
+
+/* Web card - simplified buttons */
+.web-card .btn-row {
+  margin-bottom: 1rem;
+  gap: 8px;
+}
+
+.web-card .btn-main {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 13px;
+}
+
+.web-card .btn-reset {
+  padding: 0 16px;
+  font-size: 12px;
+  height: 40px;
+}
+
+.web-card .btn-reset span {
+  display: none;
+}
+
+/* Web card - compact duration row */
+.web-card .duration-row {
+  margin-bottom: 1rem;
+  gap: 8px;
+}
+
+.web-card .duration-field input,
+.web-card .btn-apply {
+  min-height: 36px;
+  font-size: 12px;
+}
+
+.web-card .duration-field span {
+  font-size: 9px;
+}
+
+/* Web card - minimal toggle grid */
+.web-card .toggle-grid.web-compact {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 0;
+}
+
+.web-card .toggle-card {
+  min-height: 60px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 3px;
+  border-radius: 14px;
+  background: rgba(255, 250, 246, 0.5);
+  border: 1px solid rgba(140, 110, 90, 0.08);
+}
+
+.web-card .toggle-card:hover {
+  background: rgba(255, 250, 246, 0.8);
+}
+
+.web-card .toggle-card.active {
+  background: rgba(244, 160, 122, 0.12);
+  border-color: rgba(244, 160, 122, 0.25);
+}
+
+.web-card .toggle-card strong {
+  font-size: 10px;
+}
+
+.web-card .toggle-card svg {
+  width: 15px;
+  height: 15px;
 }
 
 .app {
@@ -29,12 +248,29 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem 2.5rem;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  position: relative;
+  overflow: visible;
+  width: 100%;
+  max-width: none;
+  box-shadow: none;
+  min-height: auto;
+}
+
+/* Desktop app styling */
+.app-shell.desktop .app {
+  padding: 1.5rem 1rem 2rem;
   background: var(--warm-white);
   border-radius: 24px;
-  position: relative;
+  max-width: 420px;
+  box-shadow: 0 4px 20px rgba(60, 40, 30, 0.08);
   overflow: hidden;
-  width: 380px;
+  min-height: calc(100vh - 96px);
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 22px;
 }
 
 .deco-blob {
@@ -51,14 +287,14 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 16px;
+  padding: 8px 18px;
   border-radius: 100px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   margin-bottom: 1rem;
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
   position: relative;
   z-index: 1;
 }
@@ -67,25 +303,30 @@ body {
 
 .timer-card {
   background: var(--warm-white);
-  border-radius: 28px;
-  padding: 2rem 3rem 2.5rem;
+  border-radius: 24px;
+  padding: 1.5rem 2rem 2rem;
   text-align: center;
-  box-shadow: 0 8px 32px var(--shadow), 0 0 0 2px rgba(255,200,180,0.25);
+  box-shadow: 0 4px 16px rgba(140, 100, 80, 0.08);
   position: relative;
   z-index: 1;
-  min-width: 280px;
+  width: 100%;
+}
+
+.timer-card__header.web-simple {
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
 .timer-ring-wrap {
   position: relative;
-  width: 200px;
-  height: 200px;
-  margin: 0 auto 1.5rem;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 1.2rem;
 }
 
 .timer-svg {
-  width: 200px;
-  height: 200px;
+  width: 220px;
+  height: 220px;
   transform: rotate(-90deg);
 }
 
@@ -108,11 +349,11 @@ body {
 }
 
 .timer-digits {
-  font-size: 44px;
+  font-size: 48px;
   font-weight: 900;
   color: var(--text-dark);
   line-height: 1;
-  letter-spacing: -2px;
+  letter-spacing: -2.5px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -126,19 +367,22 @@ body {
 
 .session-info {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
+  padding: 0.8rem;
+  border-radius: 16px;
+  background: rgba(255, 250, 246, 0.6);
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
 }
 .stat-val {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--text-dark);
   display: flex;
@@ -146,11 +390,11 @@ body {
   gap: 3px;
 }
 .stat-lbl {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-light);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 .divider { width: 1px; background: #F0E5DF; height: 36px; align-self: center; }
@@ -162,57 +406,120 @@ body {
   align-items: center;
 }
 
+.duration-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.duration-field {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+
+.duration-field span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9A7B69;
+}
+
+.duration-field input,
+.btn-apply {
+  min-height: 38px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(140, 110, 90, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: #553f34;
+  font: inherit;
+  transition: all 0.15s ease;
+}
+
+.duration-field input {
+  width: 100%;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.duration-field input:focus {
+  outline: none;
+  border-color: var(--peach-dark);
+  box-shadow: 0 0 0 3px rgba(244, 160, 122, 0.1);
+}
+
+.btn-apply {
+  align-self: end;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-apply:hover {
+  background: var(--peach);
+  border-color: var(--peach-dark);
+  transform: translateY(-1px);
+}
+
 .btn-main {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 32px;
+  padding: 13px 28px;
   border: none;
   border-radius: 100px;
   font-family: 'Nunito', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   letter-spacing: 0.01em;
 }
 .btn-main:active { transform: scale(0.96); }
 
-.btn-main.study { background: var(--peach-dark); color: white; box-shadow: 0 4px 16px rgba(244,160,122,0.4); }
-.btn-main.study:hover { box-shadow: 0 6px 20px rgba(244,160,122,0.55); transform: translateY(-1px); }
-.btn-main.break { background: var(--mint-dark); color: white; box-shadow: 0 4px 16px rgba(93,202,165,0.4); }
-.btn-main.break:hover { box-shadow: 0 6px 20px rgba(93,202,165,0.55); transform: translateY(-1px); }
+.btn-main.study { background: var(--peach-dark); color: white; box-shadow: 0 3px 12px rgba(244,160,122,0.35); }
+.btn-main.study:hover { box-shadow: 0 5px 18px rgba(244,160,122,0.5); transform: translateY(-1px); }
+.btn-main.break { background: var(--mint-dark); color: white; box-shadow: 0 3px 12px rgba(93,202,165,0.35); }
+.btn-main.break:hover { box-shadow: 0 5px 18px rgba(93,202,165,0.5); transform: translateY(-1px); }
 
 .btn-reset {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 2px solid #F0E5DF;
-  border-radius: 50%;
+  gap: 6px;
+  padding: 0 16px;
+  height: 42px;
+  border: 1.5px solid #E8DDD5;
+  border-radius: 100px;
   background: transparent;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
   color: var(--text-light);
+  font-size: 13px;
+  font-weight: 700;
 }
-.btn-reset:hover { border-color: var(--peach-dark); color: var(--peach-dark); transform: rotate(15deg); }
+.btn-reset:hover { border-color: var(--peach-dark); color: var(--peach-dark); transform: scale(1.02); }
 
 .toast {
-  position: absolute;
-  top: 16px;
+  position: fixed;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%) translateY(-80px);
   background: var(--text-dark);
   color: white;
   padding: 10px 20px;
   border-radius: 100px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
   z-index: 10;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
@@ -220,17 +527,17 @@ body {
   display: flex;
   gap: 6px;
   justify-content: center;
-  margin-top: 1.2rem;
+  margin-top: 1rem;
 }
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #F0E5DF;
-  transition: background 0.3s ease, transform 0.3s ease;
+  background: #E8DDD5;
+  transition: all 0.25s ease;
 }
-.dot.done { background: var(--peach-dark); }
-.dot.active { background: var(--lavender-dark); transform: scale(1.3); }
+.dot.done { background: var(--peach-dark); transform: scale(1.1); }
+.dot.active { background: var(--lavender-dark); transform: scale(1.25); box-shadow: 0 0 0 2px rgba(139, 127, 240, 0.2); }
 
 /* ── Mascot ── */
 
@@ -613,7 +920,9 @@ html, body, #root {
   min-height: 100%;
 }
 
-body {
+/* Desktop app version body styling */
+.app-shell.desktop ~ body,
+body:has(.app-shell.desktop) {
   font-family: "Aptos", "Segoe UI", "Trebuchet MS", sans-serif;
   background:
     radial-gradient(circle at top left, rgba(255, 217, 191, 0.9), transparent 30%),
@@ -623,7 +932,8 @@ body {
   padding: 20px;
 }
 
-.app-shell {
+/* Desktop shell default styling (will be overridden by specific .desktop class) */
+.app-shell.desktop {
   width: min(100%, 1120px);
   margin: 0 auto;
   border-radius: 32px;
@@ -634,7 +944,7 @@ body {
   backdrop-filter: blur(18px);
 }
 
-.app {
+.app-shell.desktop .app {
   width: 100%;
   max-width: none;
   min-height: calc(100vh - 96px);
@@ -795,9 +1105,10 @@ body {
 .hero-copy p,
 .timer-summary,
 .cycle-note {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #765f53;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #8B7060;
+  margin-top: 0.5rem;
 }
 
 .mascot-container {
@@ -909,9 +1220,9 @@ body {
 
 .toggle-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-top: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 1rem;
 }
 
 .toggle-card {
@@ -999,28 +1310,72 @@ body {
     width: min(92vw, 380px);
     height: min(92vw, 380px);
   }
+
+  /* Web-specific mobile optimizations */
+  .app {
+    max-width: 100%;
+    padding: 0.5rem;
+  }
+
+  .timer-card.web-card {
+    padding: 1.25rem 1rem 1.5rem;
+    max-width: 100%;
+  }
+
+  .web-card-header .mascot-wrap svg {
+    width: 65px;
+  }
+
+  .web-card .timer-ring-wrap {
+    width: 160px;
+    height: 160px;
+  }
+
+  .web-card .timer-svg {
+    width: 160px;
+    height: 160px;
+  }
+
+  .web-card .timer-digits {
+    font-size: 36px;
+  }
+
+  .web-card .session-info.web-compact {
+    gap: 12px;
+  }
+
+  .web-card .toggle-grid.web-compact {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .web-card .toggle-card:last-child {
+    grid-column: 1 / -1;
+  }
 }
 
-body {
+/* Desktop app specific overrides */
+.app-shell.desktop ~ body,
+body:has(.app-shell.desktop) {
   padding: 0;
   overflow: hidden;
   align-items: stretch;
   justify-content: stretch;
 }
 
-#root {
+.app-shell.desktop ~ body #root,
+body:has(.app-shell.desktop) #root {
   display: flex;
   width: 100%;
   height: 100vh;
 }
 
-.app-shell {
+.app-shell.desktop {
   width: 100%;
   min-height: 100vh;
   border-radius: 0;
 }
 
-.app {
+.app-shell.desktop .app {
   height: calc(100vh - 48px);
   padding: 10px 10px 12px;
   gap: 10px;
