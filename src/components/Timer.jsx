@@ -598,7 +598,7 @@ export default function Timer() {
   const sessionsUntilCycleEnd = stats.sessions === 0 ? 4 : 4 - cycleIndex || 4;
 
   return (
-    <div className={`app-shell ${phase}${running ? " pulsing" : ""}`}>
+    <div className={`app-shell ${phase}${running ? " pulsing" : ""}${isDesktop ? " desktop" : " web"}`}>
       <DesktopTitleBar
         appVersion={appVersion}
         isAlwaysOnTop={windowState.isAlwaysOnTop}
@@ -610,43 +610,63 @@ export default function Timer() {
       />
 
       <div className="app">
-      <div className="deco-blob blob1" />
-      <div className="deco-blob blob2" />
-      <div className="deco-blob blob3" />
+      {isDesktop && (
+        <>
+          <div className="deco-blob blob1" />
+          <div className="deco-blob blob2" />
+          <div className="deco-blob blob3" />
+        </>
+      )}
 
       {toast && <div className="toast show">{toast}</div>}
 
-      <div className="hero-copy">
-        <div className="eyebrow">50 / 10 rhythm</div>
-        <h1>{running ? (isStudy ? "Protect your best attention." : "Recover without guilt.") : "A calmer desk for focused work."}</h1>
-        <p>
-          The original web timer now lives inside a desktop shell with native
-          controls, notifications, and a cleaner workspace.
-        </p>
-      </div>
-
-      <div className="mascot-container">
-        <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} />
-        <button className="gender-toggle" onClick={toggleGender} title={`Switch to ${settings.mascotGender === "boy" ? "girl" : "boy"}`} type="button">
-          {settings.mascotGender === "boy" ? "Switch to girl" : "Switch to boy"}
-        </button>
-      </div>
-
-      <div className={`phase-badge ${phase}`}>
-        {isStudy ? <Pencil size={14} /> : <Coffee size={14} />}
-        <span>{isStudy ? "Focus mode" : "Break mode"}</span>
-      </div>
-
-      <div className="timer-card">
-        <div className="timer-card__header">
-          <div>
-            <div className="section-label">Current session</div>
-            <h2>{isStudy ? "Deep focus sprint" : "Recovery window"}</h2>
+      {isDesktop && (
+        <>
+          <div className="hero-copy">
+            <div className="eyebrow">50 / 10 rhythm</div>
+            <h1>{running ? (isStudy ? "Protect your best attention." : "Recover without guilt.") : "A calmer desk for focused work."}</h1>
+            <p>
+              The original web timer now lives inside a desktop shell with native
+              controls, notifications, and a cleaner workspace.
+            </p>
           </div>
-          <div className={`state-pill ${running ? "running" : "paused"}`}>
-            {running ? "In progress" : "Paused"}
+
+          <div className="mascot-container">
+            <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} />
+            <button className="gender-toggle" onClick={toggleGender} title={`Switch to ${settings.mascotGender === "boy" ? "girl" : "boy"}`} type="button">
+              {settings.mascotGender === "boy" ? "Switch to girl" : "Switch to boy"}
+            </button>
           </div>
-        </div>
+
+          <div className={`phase-badge ${phase}`}>
+            {isStudy ? <Pencil size={14} /> : <Coffee size={14} />}
+            <span>{isStudy ? "Focus mode" : "Break mode"}</span>
+          </div>
+        </>
+      )}
+
+      <div className={`timer-card ${!isDesktop ? 'web-card' : ''}`}>
+        {!isDesktop && (
+          <div className="web-card-header">
+            <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} />
+            <div className={`phase-badge-inline ${phase}`}>
+              {isStudy ? <Pencil size={12} /> : <Coffee size={12} />}
+              <span>{isStudy ? "Focus" : "Break"}</span>
+            </div>
+          </div>
+        )}
+
+        {isDesktop ? (
+          <div className="timer-card__header">
+            <div>
+              <div className="section-label">Current session</div>
+              <h2>{isStudy ? "Deep focus sprint" : "Recovery window"}</h2>
+            </div>
+            <div className={`state-pill ${running ? "running" : "paused"}`}>
+              {running ? "In progress" : "Paused"}
+            </div>
+          </div>
+        ) : null}
 
         <div className="timer-ring-wrap">
           <svg className="timer-svg" viewBox="0 0 200 200">
@@ -667,23 +687,25 @@ export default function Timer() {
           </div>
         </div>
 
-        <p className="timer-summary">
-          {isStudy
-            ? "One uninterrupted block, then a proper reset."
-            : "Step away, stretch, breathe, then come back clear."}
-        </p>
+        {isDesktop && (
+          <p className="timer-summary">
+            {isStudy
+              ? "One uninterrupted block, then a proper reset."
+              : "Step away, stretch, breathe, then come back clear."}
+          </p>
+        )}
 
-        <div className="session-info">
+        <div className={`session-info ${!isDesktop ? 'web-compact' : ''}`}>
           <div className="stat">
             <div className="stat-val">{stats.sessions}</div>
             <div className="stat-lbl">Sessions</div>
           </div>
-          <div className="divider" />
+          {isDesktop && <div className="divider" />}
           <div className="stat">
             <div className="stat-val">{fmtMinutes(stats.focusMinutes)}m</div>
             <div className="stat-lbl">Focus time</div>
           </div>
-          <div className="divider" />
+          {isDesktop && <div className="divider" />}
           <div className="stat">
             <div className="stat-val">
               {stats.streak} <Flame size={14} />
@@ -743,16 +765,14 @@ export default function Timer() {
           </button>
         </div>
 
-        <div className="toggle-grid">
+        <div className={`toggle-grid ${!isDesktop ? 'web-compact' : ''}`}>
           <button className={`toggle-card${settings.soundEnabled ? " active" : ""}`} onClick={() => toggleSetting("soundEnabled")} type="button">
-            {settings.soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            {settings.soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
             <strong>Sound</strong>
-            <span>{settings.soundEnabled ? "Chimes enabled" : "Silent session"}</span>
           </button>
           <button className={`toggle-card${settings.notificationsEnabled ? " active" : ""}`} onClick={() => toggleSetting("notificationsEnabled")} type="button">
-            {settings.notificationsEnabled ? <BellRing size={18} /> : <BellOff size={18} />}
+            {settings.notificationsEnabled ? <BellRing size={16} /> : <BellOff size={16} />}
             <strong>Notifications</strong>
-            <span>{settings.notificationsEnabled ? "Alerts on phase switch" : "Only in-app toasts"}</span>
           </button>
           {isDesktop && (
             <button className={`toggle-card${windowState.isAlwaysOnTop ? " active" : ""}`} onClick={handleAlwaysOnTop} type="button">
@@ -761,21 +781,31 @@ export default function Timer() {
               <span>{windowState.isAlwaysOnTop ? "Pinned above your desktop" : "Keep it floating when needed"}</span>
             </button>
           )}
+          {!isDesktop && (
+            <button className="toggle-card" onClick={toggleGender} type="button">
+              <Pencil size={16} />
+              <strong>Mascot</strong>
+            </button>
+          )}
         </div>
 
-        <div className="cycle-dots">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={`dot${i < cycleIndex ? " done" : ""}${i === cycleIndex ? " active" : ""}`}
-            />
-          ))}
-        </div>
-        <div className="cycle-note">
-          {stats.sessions === 0
-            ? "Complete your first focus block to start the cycle."
-            : `${sessionsUntilCycleEnd} session${sessionsUntilCycleEnd === 1 ? "" : "s"} until you wrap this cycle.`}
-        </div>
+        {isDesktop && (
+          <>
+            <div className="cycle-dots">
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`dot${i < cycleIndex ? " done" : ""}${i === cycleIndex ? " active" : ""}`}
+                />
+              ))}
+            </div>
+            <div className="cycle-note">
+              {stats.sessions === 0
+                ? "Complete your first focus block to start the cycle."
+                : `${sessionsUntilCycleEnd} session${sessionsUntilCycleEnd === 1 ? "" : "s"} until you wrap this cycle.`}
+            </div>
+          </>
+        )}
       </div>
       </div>
     </div>
