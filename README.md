@@ -30,16 +30,56 @@ PomodoroTimer/
 
 ## Features
 
-- Electron desktop wrapper with a dedicated `main` process and `preload` bridge
-- Safe Electron defaults: `contextIsolation: true` and `nodeIntegration: false`
-- Frameless desktop window with custom title bar controls
-- System tray integration with context menu (Show/Hide/Quit)
-- Minimize to tray - closing the window hides it to the system tray instead of quitting
-- Click tray icon to toggle window visibility
-- Native desktop notifications when focus and break sessions switch
-- Always-on-top toggle for desktop mode
-- Updated desktop-oriented layout, hierarchy, spacing, and controls
-- Persistent settings for mascot choice, sound, and notifications
+### Core Timer
+- Pomodoro Timer with customizable focus and break durations
+- Circular progress ring with smooth animations
+- Cute mascot companion (choose between Boy and Girl)
+- Session tracking: completed sessions, total focus time, and streak counter
+
+### Keyboard Shortcuts
+- **Space**: Start/Pause the timer
+- **R**: Reset the timer
+
+### Daily Goals
+- Set a daily session goal (1-99 sessions)
+- Visual progress bar showing daily progress
+- "Goal Reached" indicator when you hit your target
+- Automatically resets at midnight
+
+### Long Breaks
+- Automatic long break (30 min default) after every 4 focus sessions
+- Configurable long break duration
+- Can be enabled/disabled in settings
+
+### Auto-Start
+- **Auto-break**: Automatically start break when focus session ends
+- **Auto-focus**: Automatically start focus when break ends
+- Both can be toggled independently
+
+### Notifications & Sound
+- Browser notifications when sessions complete
+- Audio chimes with different melodies for focus/break transitions
+- Both can be toggled on/off
+
+### Statistics
+- Track total sessions completed
+- Track total focus time
+- Streak counter for consecutive sessions
+- Reset stats button to start fresh
+
+### Desktop App (Electron)
+- Frameless window with custom title bar
+- **Mini/Compact Mode**: Shrink window to timer-only view (220x300px)
+  - Shows just the timer ring, countdown, and play/pause button
+  - Click the expand button to return to full view
+  - Perfect for keeping timer visible without taking up space
+- Window is resizable between full and compact sizes
+- System tray integration with timer display in tooltip
+- Tray shows remaining time and current phase (Focus/Break)
+- Minimize to tray - closing hides to system tray
+- Always-on-top toggle to keep timer visible
+- Native desktop notifications
+- Click tray icon to show/hide window
 
 ## Run The Web App
 
@@ -84,3 +124,4 @@ Electron Builder writes packaged output to the `release/` folder.
 - `vite.config.js` uses a relative base path so Electron can load built assets from `dist/`.
 - The loading screen was shortened so the desktop app opens more like a native tool than a splash-heavy website.
 - The app runs in the system tray on desktop - closing the window minimizes to tray. Use the tray menu to fully quit the app.
+- Settings and statistics are persisted in localStorage.

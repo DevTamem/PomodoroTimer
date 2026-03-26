@@ -20,6 +20,13 @@ app.setAppUserModelId(APP_ID);
 let mainWindow;
 let tray;
 let isQuitting = false;
+let isCompactMode = false;
+
+// Window size presets
+const WINDOW_SIZES = {
+  full: { width: 480, height: 820, minWidth: 440, minHeight: 700 },
+  compact: { width: 220, height: 300, minWidth: 180, minHeight: 240 },
+};
 
 function createTrayIcon() {
   return nativeImage.createFromPath(trayIconPath).resize({ width: 16, height: 16 });
@@ -98,6 +105,7 @@ function getWindowState() {
       isAlwaysOnTop: false,
       isFocused: false,
       isVisible: false,
+      isCompactMode: false,
     };
   }
 
@@ -106,6 +114,7 @@ function getWindowState() {
     isAlwaysOnTop: mainWindow.isAlwaysOnTop(),
     isFocused: mainWindow.isFocused(),
     isVisible: mainWindow.isVisible(),
+    isCompactMode: isCompactMode,
   };
 }
 
@@ -116,18 +125,20 @@ function sendWindowState() {
 }
 
 function createWindow() {
+  const size = WINDOW_SIZES.full;
+
   mainWindow = new BrowserWindow({
-    width: 480,
-    height: 820,
-    minWidth: 440,
-    minHeight: 820,
+    width: size.width,
+    height: size.height,
+    minWidth: size.minWidth,
+    minHeight: size.minHeight,
     backgroundColor: "#f4ece3",
     frame: false,
     autoHideMenuBar: true,
     icon: trayIconPath,
     maximizable: false,
     fullscreenable: false,
-    resizable: false,
+    resizable: true,
     show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
@@ -214,6 +225,49 @@ function registerIpc() {
   });
 
   ipcMain.handle("app:get-version", () => app.getVersion());
+
+  ipcMain.handle("app:toggle-compact-mode", () => {
+    if (!mainWindow) return getWindowState();
+
+    isCompactMode = !isCompactMode;
+    const size = isCompactMode ? WINDOW_SIZES.compact : WINDOW_SIZES.full;
+
+    // Set new minimum size first
+    mainWindow.setMinimumSize(size.minWidth, size.minHeight);
+
+    // Animate to new size
+    mainWindow.setSize(size.width, size.height, true);
+
+    sendWindowState();
+    return getWindowState();
+  });
+
+  ipcMain.handle("app:set-compact-mode", (_, enabled) => {
+    if (!mainWindow) return getWindowState();
+
+    isCompactMode = enabled;
+    const size = isCompactMode ? WINDOW_SIZES.compact : WINDOW_SIZES.full;
+
+    mainWindow.setMinimumSize(size.minWidth, size.minHeight);
+    mainWindow.setSize(size.width, size.height, true);
+
+    sendWindowState();
+    return getWindowState();
+  });
+
+  ipcMain.handle("app:update-tray-timer", (_, timerInfo = {}) => {
+    if (!tray) return;
+
+    const { formattedTime, phase, running } = timerInfo;
+    const phaseLabel = phase === "study" ? "Focus" : "Break";
+    const status = running ? "Running" : "Paused";
+
+    if (formattedTime) {
+      tray.setToolTip(`Pomodoro Timer\n${phaseLabel}: ${formattedTime} (${status})`);
+    } else {
+      tray.setToolTip("Pomodoro Timer");
+    }
+  });
 }
 
 app.whenReady().then(() => {

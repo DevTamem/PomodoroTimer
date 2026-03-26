@@ -2,15 +2,23 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import {
   BellOff,
   BellRing,
+  ChevronLeft,
   Coffee,
   Flame,
+  Maximize2,
+  Minimize2,
   MonitorUp,
   Pause,
   Pencil,
   Play,
   RotateCcw,
+  Settings,
+  Target,
+  Trash2,
   Volume2,
   VolumeX,
+  X,
+  Zap,
 } from "lucide-react";
 import DesktopTitleBar from "./DesktopTitleBar";
 import { getDesktopApi, isDesktopApp } from "../lib/desktop";
@@ -18,6 +26,8 @@ import "../App.css";
 
 const DEFAULT_FOCUS_MINUTES = 50;
 const DEFAULT_BREAK_MINUTES = 10;
+const DEFAULT_LONG_BREAK_MINUTES = 30;
+const SESSIONS_UNTIL_LONG_BREAK = 4;
 const CIRC = 2 * Math.PI * 88;
 const SETTINGS_KEY = "pomodoroSettings";
 const STATS_KEY = "pomodoroStats";
@@ -25,6 +35,7 @@ const DEFAULT_WINDOW_STATE = {
   isAlwaysOnTop: false,
   isFocused: true,
   isMaximized: false,
+  isCompactMode: false,
 };
 
 function pad(n) { return String(n).padStart(2, "0"); }
@@ -50,6 +61,11 @@ function readStorage(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function getTodayKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
 async function notifyInBrowser(title, body) {
@@ -345,6 +361,11 @@ export default function Timer() {
     soundEnabled: true,
     focusMinutes: DEFAULT_FOCUS_MINUTES,
     breakMinutes: DEFAULT_BREAK_MINUTES,
+    longBreakMinutes: DEFAULT_LONG_BREAK_MINUTES,
+    longBreakEnabled: true,
+    autoStartBreak: false,
+    autoStartFocus: false,
+    dailyGoal: 4,
   });
   const [phase, setPhase] = useState("study");
   const [remaining, setRemaining] = useState(() => minutesToSeconds(initialSettings.focusMinutes));
@@ -355,21 +376,38 @@ export default function Timer() {
   const [draftDurations, setDraftDurations] = useState(() => ({
     focusMinutes: fmtMinutes(initialSettings.focusMinutes),
     breakMinutes: fmtMinutes(initialSettings.breakMinutes),
+    longBreakMinutes: fmtMinutes(initialSettings.longBreakMinutes),
+    dailyGoal: String(initialSettings.dailyGoal),
   }));
-  const [stats, setStats] = useState(() =>
-    readStorage(STATS_KEY, {
+  const [stats, setStats] = useState(() => {
+    const stored = readStorage(STATS_KEY, {
       focusMinutes: 0,
       sessions: 0,
       streak: 0,
-    })
-  );
+      dailySessions: 0,
+      lastSessionDate: "",
+    });
+    // Reset daily sessions if it's a new day
+    const today = getTodayKey();
+    if (stored.lastSessionDate !== today) {
+      return { ...stored, dailySessions: 0, lastSessionDate: today };
+    }
+    return stored;
+  });
   const [windowState, setWindowState] = useState(DEFAULT_WINDOW_STATE);
   const [appVersion, setAppVersion] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
   const intervalRef = useRef(null);
   const endTimeRef = useRef(null);
   const toastTimeoutRef = useRef(null);
+  const autoStartTimeoutRef = useRef(null);
   const focusDurationSeconds = minutesToSeconds(settings.focusMinutes);
   const breakDurationSeconds = minutesToSeconds(settings.breakMinutes);
+  const longBreakDurationSeconds = minutesToSeconds(settings.longBreakMinutes);
+
+  // Determine if next break should be a long break
+  const isLongBreak = settings.longBreakEnabled && (stats.sessions > 0) && (stats.sessions % SESSIONS_UNTIL_LONG_BREAK === 0);
+  const currentBreakDuration = isLongBreak ? longBreakDurationSeconds : breakDurationSeconds;
 
   const toggleGender = () => {
     setSettings((current) => ({
@@ -445,28 +483,58 @@ export default function Timer() {
     return () => {
       clearInterval(intervalRef.current);
       clearTimeout(toastTimeoutRef.current);
+      clearTimeout(autoStartTimeoutRef.current);
     };
   }, []);
+
+  // Auto-start helper
+  const scheduleAutoStart = useCallback((delay = 3000) => {
+    clearTimeout(autoStartTimeoutRef.current);
+    autoStartTimeoutRef.current = setTimeout(() => {
+      endTimeRef.current = Date.now() + remaining * 1000;
+      setRunning(true);
+    }, delay);
+  }, [remaining]);
 
   const handleTimerEnd = useCallback(() => {
     clearInterval(intervalRef.current);
     setRunning(false);
     endTimeRef.current = null;
 
+    const today = getTodayKey();
+
     if (phase === "study") {
+      // Check if next break is a long break (after completing this session)
+      const newSessionCount = stats.sessions + 1;
+      const willBeLongBreak = settings.longBreakEnabled && (newSessionCount % SESSIONS_UNTIL_LONG_BREAK === 0);
+      const nextBreakDuration = willBeLongBreak ? longBreakDurationSeconds : breakDurationSeconds;
+      const breakMinutesForNotification = willBeLongBreak ? settings.longBreakMinutes : settings.breakMinutes;
+
       setStats((current) => ({
         focusMinutes: current.focusMinutes + settings.focusMinutes,
         sessions: current.sessions + 1,
         streak: current.streak + 1,
+        dailySessions: (current.lastSessionDate === today ? current.dailySessions : 0) + 1,
+        lastSessionDate: today,
       }));
       if (settings.soundEnabled) {
         playChime("break");
       }
-      sendNotification("Break time", `Nice work. Step away and recharge for ${fmtMinutes(settings.breakMinutes)} minutes.`);
-      showToast("Focus block complete. Take ten to reset.");
+
+      const breakTypeText = willBeLongBreak ? "Long break" : "Break";
+      sendNotification(breakTypeText + " time", `Nice work! ${willBeLongBreak ? "You've earned a long break." : ""} Recharge for ${fmtMinutes(breakMinutesForNotification)} minutes.`);
+      showToast(willBeLongBreak ? "Long break earned! You've completed 4 sessions." : "Focus block complete. Take a moment to reset.");
       setPhase("break");
-      setTotal(breakDurationSeconds);
-      setRemaining(breakDurationSeconds);
+      setTotal(nextBreakDuration);
+      setRemaining(nextBreakDuration);
+
+      // Auto-start break if enabled
+      if (settings.autoStartBreak) {
+        setTimeout(() => {
+          endTimeRef.current = Date.now() + nextBreakDuration * 1000;
+          setRunning(true);
+        }, 2000);
+      }
     } else {
       if (settings.soundEnabled) {
         playChime("study");
@@ -476,16 +544,30 @@ export default function Timer() {
       setPhase("study");
       setTotal(focusDurationSeconds);
       setRemaining(focusDurationSeconds);
+
+      // Auto-start focus if enabled
+      if (settings.autoStartFocus) {
+        setTimeout(() => {
+          endTimeRef.current = Date.now() + focusDurationSeconds * 1000;
+          setRunning(true);
+        }, 2000);
+      }
     }
   }, [
     breakDurationSeconds,
+    longBreakDurationSeconds,
     focusDurationSeconds,
     phase,
     sendNotification,
+    settings.autoStartBreak,
+    settings.autoStartFocus,
     settings.breakMinutes,
     settings.focusMinutes,
+    settings.longBreakEnabled,
+    settings.longBreakMinutes,
     settings.soundEnabled,
     showToast,
+    stats.sessions,
   ]);
 
   const tick = useCallback(() => {
@@ -537,6 +619,7 @@ export default function Timer() {
 
   const reset = () => {
     clearInterval(intervalRef.current);
+    clearTimeout(autoStartTimeoutRef.current);
     setRunning(false);
     endTimeRef.current = null;
     setPhase("study");
@@ -554,23 +637,44 @@ export default function Timer() {
       draftDurations.breakMinutes,
       settings.breakMinutes
     );
+    const nextLongBreakMinutes = normalizeDuration(
+      draftDurations.longBreakMinutes,
+      settings.longBreakMinutes
+    );
+    const nextDailyGoal = Math.max(1, Math.min(99, Math.round(Number(draftDurations.dailyGoal)) || settings.dailyGoal));
 
     clearInterval(intervalRef.current);
+    clearTimeout(autoStartTimeoutRef.current);
     endTimeRef.current = null;
     setRunning(false);
     setSettings((current) => ({
       ...current,
       focusMinutes: nextFocusMinutes,
       breakMinutes: nextBreakMinutes,
+      longBreakMinutes: nextLongBreakMinutes,
+      dailyGoal: nextDailyGoal,
     }));
     setDraftDurations({
       focusMinutes: fmtMinutes(nextFocusMinutes),
       breakMinutes: fmtMinutes(nextBreakMinutes),
+      longBreakMinutes: fmtMinutes(nextLongBreakMinutes),
+      dailyGoal: String(nextDailyGoal),
     });
     setPhase("study");
     setRemaining(minutesToSeconds(nextFocusMinutes));
     setTotal(minutesToSeconds(nextFocusMinutes));
-    showToast(`Durations updated: ${fmtMinutes(nextFocusMinutes)}m / ${fmtMinutes(nextBreakMinutes)}m`);
+    showToast(`Settings updated`);
+  };
+
+  const resetStats = () => {
+    setStats({
+      focusMinutes: 0,
+      sessions: 0,
+      streak: 0,
+      dailySessions: 0,
+      lastSessionDate: getTodayKey(),
+    });
+    showToast("Statistics reset to zero.");
   };
 
   const toggleSetting = (key) => {
@@ -579,6 +683,34 @@ export default function Timer() {
       [key]: !current[key],
     }));
   };
+
+  // Keyboard shortcuts: Space to toggle, R to reset, Escape to close settings
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Escape closes settings
+      if (e.code === "Escape" && showSettings) {
+        e.preventDefault();
+        setShowSettings(false);
+        return;
+      }
+
+      // Don't trigger shortcuts when typing in input fields
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+        return;
+      }
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        toggle();
+      } else if (e.code === "KeyR" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        reset();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [remaining, running, focusDurationSeconds, showSettings]);
 
   const handleAlwaysOnTop = async () => {
     if (!desktopApi) {
@@ -591,11 +723,90 @@ export default function Timer() {
     }
   };
 
+  const handleCompactMode = async () => {
+    if (!desktopApi?.toggleCompactMode) {
+      return;
+    }
+
+    const nextState = await desktopApi.toggleCompactMode();
+    if (nextState) {
+      setWindowState(nextState);
+    }
+  };
+
+  // Update tray tooltip with timer info (desktop only)
+  useEffect(() => {
+    if (!desktopApi?.updateTrayTimer) return;
+
+    const timerInfo = {
+      remaining,
+      phase,
+      running,
+      formattedTime: fmt(remaining),
+    };
+    desktopApi.updateTrayTimer(timerInfo);
+  }, [remaining, phase, running, desktopApi]);
+
   const progress = remaining / total;
   const offset = CIRC * (1 - progress);
   const isStudy = phase === "study";
   const cycleIndex = stats.sessions % 4;
   const sessionsUntilCycleEnd = stats.sessions === 0 ? 4 : 4 - cycleIndex || 4;
+  const dailyGoalProgress = Math.min(100, (stats.dailySessions / settings.dailyGoal) * 100);
+  const dailyGoalReached = stats.dailySessions >= settings.dailyGoal;
+  const isCompact = windowState.isCompactMode;
+
+  // Compact mode: minimal timer-only UI
+  if (isDesktop && isCompact) {
+    return (
+      <div className={`app-shell ${phase}${running ? " pulsing" : ""} desktop compact-mode`}>
+        <div className="compact-titlebar">
+          <div className="compact-drag-region" />
+          <button
+            className="compact-expand-btn"
+            onClick={handleCompactMode}
+            title="Expand to full view"
+            type="button"
+          >
+            <Maximize2 size={14} />
+          </button>
+          <button
+            className="compact-close-btn"
+            onClick={() => desktopApi?.closeWindow()}
+            title="Close"
+            type="button"
+          >
+            ×
+          </button>
+        </div>
+        <div className="compact-content">
+          <div className="compact-timer-ring">
+            <svg className="timer-svg" viewBox="0 0 200 200">
+              <circle className="ring-track" cx="100" cy="100" r="88" />
+              <circle
+                className="ring-progress"
+                cx="100"
+                cy="100"
+                r="88"
+                stroke={isStudy ? "#F4A07A" : "#5DCAA5"}
+                strokeDasharray={CIRC}
+                strokeDashoffset={offset}
+              />
+            </svg>
+            <div className="compact-timer-center">
+              <div className="compact-timer-digits">{fmt(remaining)}</div>
+              <div className="compact-phase-indicator">
+                {isStudy ? <Pencil size={10} /> : <Coffee size={10} />}
+              </div>
+            </div>
+          </div>
+          <button className={`compact-play-btn ${phase}`} onClick={toggle} type="button">
+            {running ? <Pause size={20} /> : <Play size={20} />}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`app-shell ${phase}${running ? " pulsing" : ""}${isDesktop ? " desktop" : " web"}`}>
@@ -633,9 +844,6 @@ export default function Timer() {
 
           <div className="mascot-container">
             <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} />
-            <button className="gender-toggle" onClick={toggleGender} title={`Switch to ${settings.mascotGender === "boy" ? "girl" : "boy"}`} type="button">
-              {settings.mascotGender === "boy" ? "Switch to girl" : "Switch to boy"}
-            </button>
           </div>
 
           <div className={`phase-badge ${phase}`}>
@@ -662,11 +870,25 @@ export default function Timer() {
               <div className="section-label">Current session</div>
               <h2>{isStudy ? "Deep focus sprint" : "Recovery window"}</h2>
             </div>
-            <div className={`state-pill ${running ? "running" : "paused"}`}>
-              {running ? "In progress" : "Paused"}
-            </div>
+            <button
+              className="settings-btn"
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+              type="button"
+            >
+              <Settings size={18} />
+            </button>
           </div>
-        ) : null}
+        ) : (
+          <button
+            className="settings-btn-web"
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+            type="button"
+          >
+            <Settings size={16} />
+          </button>
+        )}
 
         <div className="timer-ring-wrap">
           <svg className="timer-svg" viewBox="0 0 200 200">
@@ -697,8 +919,13 @@ export default function Timer() {
 
         <div className={`session-info ${!isDesktop ? 'web-compact' : ''}`}>
           <div className="stat">
+            <div className="stat-val">{stats.dailySessions}/{settings.dailyGoal}</div>
+            <div className="stat-lbl">Today{dailyGoalReached && " ✓"}</div>
+          </div>
+          {isDesktop && <div className="divider" />}
+          <div className="stat">
             <div className="stat-val">{stats.sessions}</div>
-            <div className="stat-lbl">Sessions</div>
+            <div className="stat-lbl">Total</div>
           </div>
           {isDesktop && <div className="divider" />}
           <div className="stat">
@@ -727,66 +954,16 @@ export default function Timer() {
           </button>
         </div>
 
-        <div className="duration-row">
-          <label className="duration-field">
-            <span>Focus min</span>
-            <input
-              inputMode="decimal"
-              min="0.05"
-              onChange={(event) =>
-                setDraftDurations((current) => ({
-                  ...current,
-                  focusMinutes: event.target.value,
-                }))
-              }
-              step="0.05"
-              type="number"
-              value={draftDurations.focusMinutes}
-            />
-          </label>
-          <label className="duration-field">
-            <span>Break min</span>
-            <input
-              inputMode="decimal"
-              min="0.05"
-              onChange={(event) =>
-                setDraftDurations((current) => ({
-                  ...current,
-                  breakMinutes: event.target.value,
-                }))
-              }
-              step="0.05"
-              type="number"
-              value={draftDurations.breakMinutes}
-            />
-          </label>
-          <button className="btn-apply" onClick={applyDurations} type="button">
-            Apply
-          </button>
-        </div>
-
-        <div className={`toggle-grid ${!isDesktop ? 'web-compact' : ''}`}>
-          <button className={`toggle-card${settings.soundEnabled ? " active" : ""}`} onClick={() => toggleSetting("soundEnabled")} type="button">
-            {settings.soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            <strong>Sound</strong>
-          </button>
-          <button className={`toggle-card${settings.notificationsEnabled ? " active" : ""}`} onClick={() => toggleSetting("notificationsEnabled")} type="button">
-            {settings.notificationsEnabled ? <BellRing size={16} /> : <BellOff size={16} />}
-            <strong>Notifications</strong>
-          </button>
-          {isDesktop && (
-            <button className={`toggle-card${windowState.isAlwaysOnTop ? " active" : ""}`} onClick={handleAlwaysOnTop} type="button">
-              <MonitorUp size={18} />
-              <strong>Always on top</strong>
-              <span>{windowState.isAlwaysOnTop ? "Pinned above your desktop" : "Keep it floating when needed"}</span>
-            </button>
-          )}
-          {!isDesktop && (
-            <button className="toggle-card" onClick={toggleGender} type="button">
-              <Pencil size={16} />
-              <strong>Mascot</strong>
-            </button>
-          )}
+        {/* Daily Goal Progress Bar */}
+        <div className="daily-goal-section">
+          <div className="daily-goal-header">
+            <Target size={14} />
+            <span>Daily Goal: {stats.dailySessions} of {settings.dailyGoal}</span>
+            {dailyGoalReached && <span className="goal-reached">Reached!</span>}
+          </div>
+          <div className="daily-goal-bar">
+            <div className="daily-goal-fill" style={{ width: `${dailyGoalProgress}%` }} />
+          </div>
         </div>
 
         {isDesktop && (
@@ -807,6 +984,256 @@ export default function Timer() {
           </>
         )}
       </div>
+
+      {/* Settings Panel */}
+      <div className={`settings-panel ${showSettings ? 'open' : ''}`}>
+        <div className="settings-panel-header">
+          <button
+            className="settings-back-btn"
+            onClick={() => setShowSettings(false)}
+            type="button"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <h3>Settings</h3>
+          <button
+            className="settings-close-btn"
+            onClick={() => setShowSettings(false)}
+            type="button"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="settings-panel-content">
+          {/* Duration Settings */}
+          <div className="settings-section">
+            <div className="settings-section-title">Timer Durations</div>
+            <div className="settings-duration-grid">
+              <label className="settings-duration-field">
+                <span>Focus (min)</span>
+                <input
+                  inputMode="decimal"
+                  min="0.05"
+                  onChange={(event) =>
+                    setDraftDurations((current) => ({
+                      ...current,
+                      focusMinutes: event.target.value,
+                    }))
+                  }
+                  step="0.05"
+                  type="number"
+                  value={draftDurations.focusMinutes}
+                />
+              </label>
+              <label className="settings-duration-field">
+                <span>Break (min)</span>
+                <input
+                  inputMode="decimal"
+                  min="0.05"
+                  onChange={(event) =>
+                    setDraftDurations((current) => ({
+                      ...current,
+                      breakMinutes: event.target.value,
+                    }))
+                  }
+                  step="0.05"
+                  type="number"
+                  value={draftDurations.breakMinutes}
+                />
+              </label>
+              {isDesktop && (
+                <label className="settings-duration-field">
+                  <span>Long Break (min)</span>
+                  <input
+                    inputMode="decimal"
+                    min="0.05"
+                    onChange={(event) =>
+                      setDraftDurations((current) => ({
+                        ...current,
+                        longBreakMinutes: event.target.value,
+                      }))
+                    }
+                    step="0.05"
+                    type="number"
+                    value={draftDurations.longBreakMinutes}
+                  />
+                </label>
+              )}
+              <label className="settings-duration-field">
+                <span>Daily Goal</span>
+                <input
+                  inputMode="numeric"
+                  min="1"
+                  max="99"
+                  onChange={(event) =>
+                    setDraftDurations((current) => ({
+                      ...current,
+                      dailyGoal: event.target.value,
+                    }))
+                  }
+                  step="1"
+                  type="number"
+                  value={draftDurations.dailyGoal}
+                />
+              </label>
+            </div>
+            <button className="settings-apply-btn" onClick={applyDurations} type="button">
+              Apply Changes
+            </button>
+          </div>
+
+          {/* Toggle Settings */}
+          <div className="settings-section">
+            <div className="settings-section-title">Preferences</div>
+            <div className="settings-toggle-list">
+              <button
+                className={`settings-toggle-item${settings.soundEnabled ? " active" : ""}`}
+                onClick={() => toggleSetting("soundEnabled")}
+                type="button"
+              >
+                <div className="settings-toggle-icon">
+                  {settings.soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                </div>
+                <div className="settings-toggle-text">
+                  <strong>Sound</strong>
+                  <span>Play chime when sessions end</span>
+                </div>
+                <div className={`settings-toggle-switch${settings.soundEnabled ? " on" : ""}`} />
+              </button>
+
+              <button
+                className={`settings-toggle-item${settings.notificationsEnabled ? " active" : ""}`}
+                onClick={() => toggleSetting("notificationsEnabled")}
+                type="button"
+              >
+                <div className="settings-toggle-icon">
+                  {settings.notificationsEnabled ? <BellRing size={18} /> : <BellOff size={18} />}
+                </div>
+                <div className="settings-toggle-text">
+                  <strong>Notifications</strong>
+                  <span>Show alerts when sessions end</span>
+                </div>
+                <div className={`settings-toggle-switch${settings.notificationsEnabled ? " on" : ""}`} />
+              </button>
+
+              <button
+                className={`settings-toggle-item${settings.autoStartBreak ? " active" : ""}`}
+                onClick={() => toggleSetting("autoStartBreak")}
+                type="button"
+              >
+                <div className="settings-toggle-icon">
+                  <Zap size={18} />
+                </div>
+                <div className="settings-toggle-text">
+                  <strong>Auto-start Break</strong>
+                  <span>Automatically begin break after focus</span>
+                </div>
+                <div className={`settings-toggle-switch${settings.autoStartBreak ? " on" : ""}`} />
+              </button>
+
+              <button
+                className={`settings-toggle-item${settings.autoStartFocus ? " active" : ""}`}
+                onClick={() => toggleSetting("autoStartFocus")}
+                type="button"
+              >
+                <div className="settings-toggle-icon">
+                  <Play size={18} />
+                </div>
+                <div className="settings-toggle-text">
+                  <strong>Auto-start Focus</strong>
+                  <span>Automatically begin focus after break</span>
+                </div>
+                <div className={`settings-toggle-switch${settings.autoStartFocus ? " on" : ""}`} />
+              </button>
+
+              {isDesktop && (
+                <>
+                  <button
+                    className={`settings-toggle-item${settings.longBreakEnabled ? " active" : ""}`}
+                    onClick={() => toggleSetting("longBreakEnabled")}
+                    type="button"
+                  >
+                    <div className="settings-toggle-icon">
+                      <Coffee size={18} />
+                    </div>
+                    <div className="settings-toggle-text">
+                      <strong>Long Breaks</strong>
+                      <span>{settings.longBreakEnabled ? `${fmtMinutes(settings.longBreakMinutes)}m every 4 sessions` : "Disabled"}</span>
+                    </div>
+                    <div className={`settings-toggle-switch${settings.longBreakEnabled ? " on" : ""}`} />
+                  </button>
+
+                  <button
+                    className={`settings-toggle-item${windowState.isAlwaysOnTop ? " active" : ""}`}
+                    onClick={handleAlwaysOnTop}
+                    type="button"
+                  >
+                    <div className="settings-toggle-icon">
+                      <MonitorUp size={18} />
+                    </div>
+                    <div className="settings-toggle-text">
+                      <strong>Always on Top</strong>
+                      <span>{windowState.isAlwaysOnTop ? "Window pinned above others" : "Keep window floating"}</span>
+                    </div>
+                    <div className={`settings-toggle-switch${windowState.isAlwaysOnTop ? " on" : ""}`} />
+                  </button>
+
+                  <button
+                    className="settings-toggle-item"
+                    onClick={handleCompactMode}
+                    type="button"
+                  >
+                    <div className="settings-toggle-icon">
+                      <Minimize2 size={18} />
+                    </div>
+                    <div className="settings-toggle-text">
+                      <strong>Mini Mode</strong>
+                      <span>Shrink to timer only</span>
+                    </div>
+                    <div className="settings-toggle-arrow">→</div>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Mascot & Other */}
+          <div className="settings-section">
+            <div className="settings-section-title">Appearance</div>
+            <div className="settings-toggle-list">
+              <button
+                className="settings-toggle-item"
+                onClick={toggleGender}
+                type="button"
+              >
+                <div className="settings-toggle-icon">
+                  <Pencil size={18} />
+                </div>
+                <div className="settings-toggle-text">
+                  <strong>Mascot</strong>
+                  <span>Currently: {settings.mascotGender === "boy" ? "Boy" : "Girl"}</span>
+                </div>
+                <div className="settings-toggle-arrow">Switch</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Reset Stats */}
+          <div className="settings-section">
+            <div className="settings-section-title">Data</div>
+            <button className="settings-danger-btn" onClick={resetStats} type="button">
+              <Trash2 size={16} />
+              <span>Reset All Statistics</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Settings Overlay */}
+      {showSettings && (
+        <div className="settings-overlay" onClick={() => setShowSettings(false)} />
+      )}
       </div>
     </div>
   );
