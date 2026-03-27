@@ -344,9 +344,24 @@ function MascotGirl({ state }) {
   );
 }
 
-function Mascot({ state, gender }) {
+function Mascot({ state, gender, onToggleGender }) {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggleGender?.();
+    }
+  };
+
   return (
-    <div className={`mascot-wrap ${state}`}>
+    <div
+      className={`mascot-wrap ${state}`}
+      role={onToggleGender ? 'button' : undefined}
+      tabIndex={onToggleGender ? 0 : -1}
+      onClick={onToggleGender}
+      onKeyDown={onToggleGender ? handleKeyDown : undefined}
+      aria-label="Toggle mascot gender"
+      title="Click mascot to switch gender"
+    >
       {gender === "girl" ? <MascotGirl state={state} /> : <MascotBoy state={state} />}
     </div>
   );
@@ -843,7 +858,7 @@ export default function Timer() {
           </div>
 
           <div className="mascot-container">
-            <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} />
+            <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} onToggleGender={toggleGender} />
           </div>
 
           <div className={`phase-badge ${phase}`}>
@@ -856,7 +871,7 @@ export default function Timer() {
       <div className={`timer-card ${!isDesktop ? 'web-card' : ''}`}>
         {!isDesktop && (
           <div className="web-card-header">
-            <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} />
+            <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} onToggleGender={toggleGender} />
             <div className={`phase-badge-inline ${phase}`}>
               {isStudy ? <Pencil size={12} /> : <Coffee size={12} />}
               <span>{isStudy ? "Focus" : "Break"}</span>
