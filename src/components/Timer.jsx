@@ -859,6 +859,15 @@ export default function Timer() {
 
           <div className="mascot-container">
             <Mascot state={running ? (phase === "study" ? "studying" : "sleeping") : "idle"} gender={settings.mascotGender} onToggleGender={toggleGender} />
+            <button
+              className="gender-toggle"
+              onClick={toggleGender}
+              aria-label="Toggle mascot gender"
+              title="Toggle mascot gender"
+              type="button"
+            >
+              {settings.mascotGender === "boy" ? "♀" : "♂"}
+            </button>
           </div>
 
           <div className={`phase-badge ${phase}`}>
