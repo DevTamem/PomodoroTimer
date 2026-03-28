@@ -118,91 +118,82 @@ function playChime(type) {
   playSequence(ctx.currentTime + 1.2);
 }
 
-function MascotBoy({ state }) {
+function MascotBoyClassic({ state }) {
   return (
-    <svg viewBox="0 0 116 160" width="108" height="149" style={{ overflow: "visible" }}>
+    <svg viewBox="0 0 116 170" width="108" height="158" style={{ overflow: "visible" }}>
       {/* Neck */}
-      <rect x="48" y="122" width="20" height="12" rx="4" fill="#F4C49A"/>
+      <rect x="48" y="122" width="20" height="12" rx="5" fill="#F4C49A"/>
 
-      {/* Face oval */}
-      <ellipse cx="58" cy="98" rx="30" ry="36" fill="#FDDCBE"/>
+      {/* Face */}
+      <ellipse cx="58" cy="98" rx="30" ry="36" fill="#FDDCBE" stroke="#cda58a" strokeWidth="1"/>
 
       {/* Ears */}
-      <ellipse cx="27" cy="98" rx="5.5" ry="8" fill="#FDDCBE"/>
+      <ellipse cx="27" cy="98" rx="6" ry="8" fill="#FDDCBE"/>
       <ellipse cx="27" cy="98" rx="3" ry="5" fill="#F4B090"/>
-      <ellipse cx="89" cy="98" rx="5.5" ry="8" fill="#FDDCBE"/>
+      <ellipse cx="89" cy="98" rx="6" ry="8" fill="#FDDCBE"/>
       <ellipse cx="89" cy="98" rx="3" ry="5" fill="#F4B090"/>
 
-      {/* Hair mass behind face */}
-      <ellipse cx="58" cy="66" rx="31" ry="18" fill="#3d2710"/>
-      {/* Side hair left */}
-      <path d="M27 72 Q18 80 20 96 Q22 108 28 112" fill="none" stroke="#3d2710" strokeWidth="9" strokeLinecap="round"/>
-      {/* Side hair right */}
-      <path d="M89 72 Q98 80 96 96 Q94 108 88 112" fill="none" stroke="#3d2710" strokeWidth="9" strokeLinecap="round"/>
-      {/* Bangs coming down forehead */}
-      <path d="M36 68 Q34 76 37 82" fill="none" stroke="#3d2710" strokeWidth="6" strokeLinecap="round"/>
-      <path d="M44 64 Q42 74 44 82" fill="none" stroke="#3d2710" strokeWidth="5.5" strokeLinecap="round"/>
-      <path d="M52 62 Q51 73 52 82" fill="none" stroke="#3d2710" strokeWidth="5" strokeLinecap="round"/>
-      <path d="M62 62 Q63 73 62 82" fill="none" stroke="#3d2710" strokeWidth="5" strokeLinecap="round"/>
-      <path d="M71 63 Q73 74 71 82" fill="none" stroke="#3d2710" strokeWidth="5.5" strokeLinecap="round"/>
+      {/* Side hair */}
+      <path d="M28 78 Q22 94 24 110" fill="none" stroke="#3d2710" strokeWidth="8" strokeLinecap="round"/>
+      <path d="M90 78 Q96 94 94 110" fill="none" stroke="#3d2710" strokeWidth="8" strokeLinecap="round"/>
+      {/* Bangs */}
+      <path d="M34 70 Q32 78 35 84" fill="none" stroke="#3d2710" strokeWidth="6" strokeLinecap="round"/>
+      <path d="M44 66 Q42 76 44 84" fill="none" stroke="#3d2710" strokeWidth="5.5" strokeLinecap="round"/>
+      <path d="M52 64 Q51 74 52 84" fill="none" stroke="#3d2710" strokeWidth="5" strokeLinecap="round"/>
+      <path d="M62 64 Q63 74 62 84" fill="none" stroke="#3d2710" strokeWidth="5" strokeLinecap="round"/>
+      <path d="M71 65 Q73 76 71 84" fill="none" stroke="#3d2710" strokeWidth="5.5" strokeLinecap="round"/>
 
       {/* Cap dome */}
-      <path d="M28 72 Q28 44 58 44 Q88 44 88 72" fill="#f0f0f0"/>
-      {/* Cap panel lines */}
-      <path d="M58 44 Q58 72 58 72" fill="none" stroke="#ddd" strokeWidth="1"/>
-      <path d="M58 44 Q40 52 34 68" fill="none" stroke="#ddd" strokeWidth="1"/>
-      <path d="M58 44 Q76 52 82 68" fill="none" stroke="#ddd" strokeWidth="1"/>
-      {/* Sweatband edge */}
-      <path d="M28 72 Q58 76 88 72" fill="none" stroke="#d8d8d8" strokeWidth="3.5" strokeLinecap="butt"/>
-      {/* Brim */}
-      <path d="M24 73 Q58 80 92 73 L90 80 Q58 87 26 80 Z" fill="#d8d8d8"/>
-      <path d="M24 73 Q58 78 92 73" fill="none" stroke="#c4c4c4" strokeWidth="1"/>
-      {/* Button on top */}
-      <circle cx="58" cy="45" r="4.5" fill="#d8d8d8"/>
-      <circle cx="58" cy="45" r="2.5" fill="#c4c4c4"/>
+      <path d="M22 75 Q42 40 58 42 Q74 40 94 75 Q92 85 80 92 Q62 96 58 96 Q54 96 36 92 Q24 85 22 75 Z" fill="#7da3ff" stroke="#4f78d6" strokeWidth="2"/>
+      <path d="M26 76 Q58 60 90 76" fill="#abc7ff"/>
+      <path d="M29 77 Q58 65 87 77" fill="none" stroke="#4f78d6" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="58" cy="46" r="5" fill="#ffd154"/>
 
-      {/* Glasses — hide when sleeping */}
+      {/* Sparkles around head */}
+      <polygon points="50,26 53,34 61,34 55,38 58,46 50,41 42,46 45,38 39,34 47,34" fill="#fff7c9" opacity="0.8"/>
+
+      {/* Glasses */}
       {state !== "sleeping" && (
         <g>
-          <rect x="35" y="90" width="18" height="13" rx="6" fill="rgba(180,220,255,0.18)" stroke="#4a3a2a" strokeWidth="2.2"/>
-          <rect x="63" y="90" width="18" height="13" rx="6" fill="rgba(180,220,255,0.18)" stroke="#4a3a2a" strokeWidth="2.2"/>
-          <path d="M53 96 Q58 94 63 96" fill="none" stroke="#4a3a2a" strokeWidth="2"/>
-          <line x1="26" y1="96" x2="35" y2="96" stroke="#4a3a2a" strokeWidth="1.8"/>
-          <line x1="81" y1="96" x2="90" y2="96" stroke="#4a3a2a" strokeWidth="1.8"/>
+          <rect x="32" y="90" width="20" height="14" rx="7" fill="rgba(255,255,255,0.4)" stroke="#4f78d6" strokeWidth="2"/>
+          <rect x="64" y="90" width="20" height="14" rx="7" fill="rgba(255,255,255,0.4)" stroke="#4f78d6" strokeWidth="2"/>
+          <path d="M52 97 Q58 95 64 97" fill="none" stroke="#4f78d6" strokeWidth="2"/>
+          <line x1="26" y1="97" x2="32" y2="97" stroke="#4f78d6" strokeWidth="1.8"/>
+          <line x1="84" y1="97" x2="90" y2="97" stroke="#4f78d6" strokeWidth="1.8"/>
         </g>
       )}
 
       {/* Nose */}
-      <ellipse cx="58" cy="107" rx="3" ry="2" fill="#F4B090"/>
+      <ellipse cx="58" cy="106" rx="3" ry="2" fill="#f2a97e"/>
 
-      {/* State-specific: eyes + mouth */}
+      {/* States */}
       {state === "idle" && (
         <>
           <g className="mascot-blink" style={{ transformOrigin: "44px 96px" }}>
-            <circle cx="44" cy="96" r="4" fill="#1e1208"/>
-            <circle cx="45.4" cy="94.4" r="1.3" fill="white"/>
+            <circle cx="44" cy="96" r="5" fill="#3b2a21"/>
+            <circle cx="44" cy="94" r="1.4" fill="#fff"/>
+            <circle cx="46" cy="97" r="2" fill="#80d2ff"/>
           </g>
           <g className="mascot-blink" style={{ transformOrigin: "72px 96px" }}>
-            <circle cx="72" cy="96" r="4" fill="#1e1208"/>
-            <circle cx="73.4" cy="94.4" r="1.3" fill="white"/>
+            <circle cx="72" cy="96" r="5" fill="#3b2a21"/>
+            <circle cx="72" cy="94" r="1.4" fill="#fff"/>
+            <circle cx="74" cy="97" r="2" fill="#80d2ff"/>
           </g>
-          <path d="M50 114 Q58 120 66 114" fill="none" stroke="#c47a5a" strokeWidth="2.2" strokeLinecap="round"/>
+          <path d="M50 113 Q58 121 66 113" fill="none" stroke="#e39076" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M52 111 Q58 117 64 111" fill="none" stroke="#fff3e2" strokeWidth="1.7" strokeLinecap="round"/>
         </>
       )}
 
       {state === "studying" && (
         <>
-          <circle cx="44" cy="96" r="4" fill="#1e1208"/>
-          <circle cx="45.4" cy="94.4" r="1.3" fill="white"/>
-          <rect x="39" y="88" width="10" height="6" rx="1" fill="#FDDCBE"/>
-          <path d="M39 93 Q44 90 50 93" fill="#FDDCBE" stroke="#3d2a1a" strokeWidth="1.8" strokeLinecap="round"/>
-          <circle cx="72" cy="96" r="4" fill="#1e1208"/>
-          <circle cx="73.4" cy="94.4" r="1.3" fill="white"/>
-          <rect x="67" y="88" width="10" height="6" rx="1" fill="#FDDCBE"/>
-          <path d="M67 93 Q72 90 78 93" fill="#FDDCBE" stroke="#3d2a1a" strokeWidth="1.8" strokeLinecap="round"/>
-          <path d="M50 114 Q55 118 61 115 Q63 113 64 112" fill="none" stroke="#c47a5a" strokeWidth="2.2" strokeLinecap="round"/>
-          <ellipse cx="67.5" cy="114" rx="5.5" ry="4.5" fill="#F4A07A" transform="rotate(-20,67.5,114)"/>
-          <line x1="67.5" y1="111.5" x2="67.5" y2="116" stroke="#c06040" strokeWidth="1.2" strokeLinecap="round" transform="rotate(-20,67.5,114)"/>
+          <ellipse cx="44" cy="96" rx="5" ry="4" fill="#3b2a21"/>
+          <ellipse cx="45" cy="94" rx="1.6" ry="1.6" fill="#fff"/>
+          <ellipse cx="72" cy="96" rx="5" ry="4" fill="#3b2a21"/>
+          <ellipse cx="73" cy="94" rx="1.6" ry="1.6" fill="#fff"/>
+          <path d="M52 114 Q58 118 64 114" fill="none" stroke="#c26b58" strokeWidth="2.3" strokeLinecap="round"/>
+          <ellipse cx="69" cy="114" rx="5" ry="4" fill="#ffb2ae" transform="rotate(-22,69,114)"/>
+          <line x1="69" y1="111.5" x2="69" y2="115.5" stroke="#d06d52" strokeWidth="1.2" transform="rotate(-22,69,114)"/>
+          <path d="M54 84 Q58 78 62 84" fill="none" stroke="#3d2710" strokeWidth="2" strokeLinecap="round"/>
         </>
       )}
 
@@ -210,23 +201,21 @@ function MascotBoy({ state }) {
         <>
           <path d="M37 95 Q44 90 51 95" fill="none" stroke="#2e1e0e" strokeWidth="2.8" strokeLinecap="round"/>
           <path d="M65 95 Q72 90 79 95" fill="none" stroke="#2e1e0e" strokeWidth="2.8" strokeLinecap="round"/>
-          <path d="M37 95 Q44 91 51 95" fill="#F4C4A4" opacity="0.5"/>
-          <path d="M65 95 Q72 91 79 95" fill="#F4C4A4" opacity="0.5"/>
-          <path d="M51 116 Q58 117 65 116" fill="none" stroke="#c47a5a" strokeWidth="2" strokeLinecap="round"/>
-          <text className="z1" x="82" y="72" fontSize="12" fontWeight="800" fill="#8B7FF0" fontFamily="sans-serif">z</text>
-          <text className="z2" x="90" y="59" fontSize="16" fontWeight="800" fill="#8B7FF0" fontFamily="sans-serif">z</text>
-          <text className="z3" x="98" y="44" fontSize="20" fontWeight="800" fill="#8B7FF0" fontFamily="sans-serif">z</text>
+          <path d="M52 116 Q58 117 64 116" fill="none" stroke="#c47a5a" strokeWidth="2" strokeLinecap="round"/>
+          <text className="z1" x="81" y="72" fontSize="12" fontWeight="800" fill="#8B7FF0" fontFamily="sans-serif">z</text>
+          <text className="z2" x="89" y="59" fontSize="16" fontWeight="800" fill="#8B7FF0" fontFamily="sans-serif">z</text>
+          <text className="z3" x="97" y="45" fontSize="20" fontWeight="800" fill="#8B7FF0" fontFamily="sans-serif">z</text>
         </>
       )}
 
       {/* Cheeks */}
-      <ellipse cx="36" cy="108" rx="7" ry="4" fill="#FFAA88" opacity={state === "studying" ? 0.6 : 0.4}/>
-      <ellipse cx="80" cy="108" rx="7" ry="4" fill="#FFAA88" opacity={state === "studying" ? 0.6 : 0.4}/>
+      <ellipse cx="36" cy="108" rx="8" ry="4.5" fill="#ff9b9b" opacity={state === "studying" ? 0.8 : 0.55}/>
+      <ellipse cx="80" cy="108" rx="8" ry="4.5" fill="#ff9b9b" opacity={state === "studying" ? 0.8 : 0.55}/>
     </svg>
   );
 }
 
-function MascotGirl({ state }) {
+function MascotGirlClassic({ state }) {
   return (
     <svg viewBox="0 0 116 170" width="108" height="158" style={{ overflow: "visible" }}>
       {/* Long hair behind - flows down */}
@@ -342,6 +331,14 @@ function MascotGirl({ state }) {
       <ellipse cx="81" cy="108" rx="8" ry="4.5" fill="#FFAA88" opacity={state === "studying" ? 0.65 : 0.45}/>
     </svg>
   );
+}
+
+function MascotBoy({ state }) {
+  return <MascotBoyClassic state={state} />;
+}
+
+function MascotGirl({ state }) {
+  return <MascotGirlClassic state={state} />;
 }
 
 function Mascot({ state, gender, onToggleGender }) {
